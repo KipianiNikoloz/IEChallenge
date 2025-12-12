@@ -63,12 +63,12 @@
 
 ## Current Sprint
 - Sprint: Sprint 1 – Foundations
-- Goals: scaffold modular monolith structure for backend (FastAPI) and frontend (React TS), establish lint/format/test baselines, set monotone theme tokens and routing shells, provide health/auth stubs and data model placeholders.
-- Scope: project skeleton, configuration, quality tooling, initial routes/endpoints stubs, theme tokens and layout shells.
-- Out of Scope: full feature implementation (observables/events logic, persistence details, charts), real auth flows, production infra.
+- Goals: (done) scaffold modular monolith structure for backend (FastAPI) and frontend (React TS), establish lint/format/test baselines, set monotone theme tokens and routing shells, provide health/auth stubs and data model placeholders; (next) implement real auth with JWT, add DB models with Alembic migrations for observables/events/utility, wire utility computation to persisted data, and connect frontend login + observables list to live API.
+- Scope: project skeleton, configuration, quality tooling, initial routes/endpoints stubs, theme tokens and layout shells, plus auth + persistence + utility wiring and frontend auth/data hookup.
+- Out of Scope: full optimization logic, advanced charts, production infra.
 
 ## Completed Work
-- None recorded.
+- Backend/frontend scaffolding with monotone theme, routing shells, placeholder endpoints, and initial tests.
 
 ## Open Questions & Risks
 - Not yet captured.

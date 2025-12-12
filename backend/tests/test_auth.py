@@ -1,13 +1,12 @@
-from fastapi.testclient import TestClient
-
-from app.main import app
-
-
-client = TestClient(app)
+import pytest
+from httpx import AsyncClient
 
 
-def test_login_success() -> None:
-    response = client.post("/api/v1/auth/login", json={"username": "admin", "password": "admin"})
+@pytest.mark.anyio
+async def test_login_success(async_client: AsyncClient) -> None:
+    response = await async_client.post(
+        "/api/v1/auth/login", json={"username": "admin", "password": "admin"}
+    )
     assert response.status_code == 200
     body = response.json()
     assert "access_token" in body

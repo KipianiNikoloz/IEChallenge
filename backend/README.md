@@ -6,12 +6,16 @@ FastAPI modular monolith skeleton for the Black Box Democracy dashboard.
 - Create a virtual environment with Python 3.11+.
 - Install dependencies: `pip install .` (or `pip install .[dev]` for lint/tests).
 - Run locally: `uvicorn app.main:app --reload`.
+- Migrations (Alembic):
+  - `alembic upgrade head` to apply
+  - `alembic revision --autogenerate -m "message"` to create new migrations
 
 ## Layout
 - `app/core`: config and logging.
 - `app/db`: database engine and session management (SQLite).
 - `app/modules`: domain modules (auth, observables/events, utility/optimization, algorithm).
 - `app/api/router.py`: aggregates module routers under `/api/v1`.
+- Default admin (dev): `admin` / `admin` (created on startup). Set a real `SECRET_KEY` and rotate credentials for non-dev.
 
 ## Testing
 - Run tests: `pytest`.

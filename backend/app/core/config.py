@@ -1,4 +1,5 @@
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -9,6 +10,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = Field(default=60)
     algorithm: str = Field(default="HS256")
     sqlite_dsn: str = Field(default="sqlite+aiosqlite:///./data/app.db")
+    testing: bool = Field(default=False)
 
     class Config:
         env_file = ".env"

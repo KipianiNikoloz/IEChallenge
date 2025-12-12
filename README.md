@@ -13,6 +13,8 @@ Modular monolith scaffold: FastAPI backend + React TypeScript frontend with a mo
 2) `python -m venv .venv && source .venv/bin/activate`
 3) `pip install .[dev]`
 4) `uvicorn app.main:app --reload`
+5) Migrations: `alembic upgrade head` (create new with `alembic revision --autogenerate -m "msg"`)
+6) Dev admin seed: username `admin`, password `admin` (change for real deployments; set `SECRET_KEY`)
 
 ### Frontend
 1) `cd frontend`

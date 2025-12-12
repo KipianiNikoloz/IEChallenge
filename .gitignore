@@ -1,19 +1,32 @@
 # Node / frontend
 frontend/node_modules
 frontend/dist
+frontend/.vite
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Python / backend
 __pycache__/
 .pytest_cache/
-.venv/
-backend/.venv
+venv/
+backend/venv
 backend/.mypy_cache
+backend/build/
+backend/dist/
+*.egg-info
+.coverage
+coverage.*
+.python-version
 
 # Env/config
 .env
 .env.*
 *.sqlite
 *.db
+*.log
+.vscode/
+.idea/
 
 # OS
 .DS_Store

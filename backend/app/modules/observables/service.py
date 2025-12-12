@@ -1,67 +1,81 @@
 from typing import List, Optional
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.db.models import Event, Observable
 from app.modules.observables.schemas import (
     EventRead,
     ObservableCreate,
     ObservableDetail,
     ObservableRead,
-    ObservableStatus,
 )
 
-# Placeholder in-memory dataset.
-_OBSERVABLES: list[ObservableDetail] = [
-    ObservableDetail(
-        id=1,
-        name="Person A",
-        metadata={"cohort": "alpha"},
-        status=ObservableStatus.STABLE,
-        utility_x=0.4,
-        utility_y=0.6,
-        utility_distance=0.72,
-        events=[
-            EventRead(
-                id=1,
-                observable_id=1,
-                type="PAST",
-                status="COMPLETED",
-                label="past-1",
-                sequence_index=0,
-                weight=0.2,
-            ),
-            EventRead(
-                id=2,
-                observable_id=1,
-                type="PLANNED",
-                status="PLANNED",
-                label="future-1",
-                sequence_index=1,
-                weight=0.3,
-                is_cutoff=True,
-            ),
-        ],
+
+def _event_to_read(event: Event) -> EventRead:
+    return EventRead(
+        id=event.id,
+        observable_id=event.observable_id,
+        type=event.type,
+        status=event.status,
+        label=event.label,
+        description=event.description,
+        sequence_index=event.sequence_index,
+        is_cutoff=event.is_cutoff,
+        weight=event.weight,
+        timestamp=event.timestamp.isoformat() if event.timestamp else None,
     )
-]
 
 
-def list_observables() -> List[ObservableRead]:
-    return [ObservableRead(**obs.dict()) for obs in _OBSERVABLES]
+def _observable_to_read(observable: Observable) -> ObservableRead:
+    return ObservableRead(
+        id=observable.id,
+        name=observable.name,
+        metadata=observable.metadata or {},
+        status=observable.status,
+        utility_x=observable.utility_x,
+        utility_y=observable.utility_y,
+        utility_distance=observable.utility_distance,
+    )
 
 
-def get_observable(observable_id: int) -> Optional[ObservableDetail]:
-    return next((obs for obs in _OBSERVABLES if obs.id == observable_id), None)
+def _observable_to_detail(observable: Observable) -> ObservableDetail:
+    events = sorted(observable.events, key=lambda e: e.sequence_index)
+    return ObservableDetail(
+        **_observable_to_read(observable).model_dump(),
+        events=[_event_to_read(event) for event in events],
+    )
 
 
-def create_observable(payload: ObservableCreate) -> ObservableDetail:
-    new_id = max((obs.id for obs in _OBSERVABLES), default=0) + 1
-    new_obs = ObservableDetail(
-        id=new_id,
+async def list_observables(session: AsyncSession) -> List[ObservableRead]:
+    result = await session.execute(select(Observable))
+    observables = result.scalars().all()
+    return [_observable_to_read(obs) for obs in observables]
+
+
+async def get_observable(session: AsyncSession, observable_id: int) -> Optional[ObservableDetail]:
+    result = await session.execute(
+        select(Observable).options(selectinload(Observable.events)).where(Observable.id == observable_id)
+    )
+    observable = result.scalars().first()
+    if not observable:
+        return None
+    return _observable_to_detail(observable)
+
+
+async def create_observable(
+    session: AsyncSession, payload: ObservableCreate
+) -> ObservableDetail:
+    observable = Observable(
         name=payload.name,
         metadata=payload.metadata,
         status=payload.status,
         utility_x=0.0,
         utility_y=0.0,
         utility_distance=0.0,
-        events=[],
     )
-    _OBSERVABLES.append(new_obs)
-    return new_obs
+    session.add(observable)
+    await session.commit()
+    await session.refresh(observable)
+    return _observable_to_detail(observable)

@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from app.api.router import api_router
 from app.core.config import settings
 from app.core.logging import configure_logging
+from app.db.database import AsyncSessionLocal
+from app.modules.auth.service import ensure_admin_user
 
 
 def create_application() -> FastAPI:
@@ -18,6 +20,12 @@ def create_application() -> FastAPI:
     @application.get("/health", tags=["health"])
     async def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    if not settings.testing:
+        @application.on_event("startup")
+        async def startup() -> None:
+            async with AsyncSessionLocal() as session:
+                await ensure_admin_user(session, username="admin", password="admin")
 
     return application
 

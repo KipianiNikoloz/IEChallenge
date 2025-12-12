@@ -1,5 +1,7 @@
-import React from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import React, { useEffect } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+
+import { clearToken, isAuthenticated } from "../lib/auth";
 
 const links = [
   { to: "/dashboard/observables", label: "Observables" },
@@ -8,6 +10,19 @@ const links = [
 ];
 
 export function LayoutShell() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    clearToken();
+    navigate("/login");
+  };
+
   return (
     <div className="app-shell">
       <header style={headerStyle}>
@@ -28,7 +43,10 @@ export function LayoutShell() {
             ))}
           </nav>
         </div>
-        <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Admin</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Admin</div>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
       </header>
       <main className="content">
         <Outlet />

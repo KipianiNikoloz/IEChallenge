@@ -24,6 +24,7 @@ dev = [
     "ruff>=0.4",
     "black>=24.3",
     "isort>=5.12",
+    "alembic>=1.13,<2",
 ]
 
 [tool.ruff]

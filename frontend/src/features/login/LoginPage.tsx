@@ -1,16 +1,30 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { post } from "../../lib/apiClient";
+import { setToken } from "../../lib/auth";
+
+type LoginResponse = { access_token: string; token_type: string };
+
 export function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    // Placeholder: wire up to auth API and token storage.
-    if (username && password) {
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await post<LoginResponse>("/auth/login", { username, password });
+      setToken(data.access_token);
       navigate("/dashboard/observables");
+    } catch (err) {
+      setError("Invalid credentials");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,7 +52,10 @@ export function LoginPage() {
             required
           />
         </label>
-        <button type="submit">Sign in</button>
+        {error && <div style={{ color: "var(--accent)", fontSize: "0.9rem" }}>{error}</div>}
+        <button type="submit" disabled={loading}>
+          {loading ? "Signing in..." : "Sign in"}
+        </button>
       </form>
     </div>
   );
