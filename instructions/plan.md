@@ -54,7 +54,7 @@
 - Coding principles: SOLID, DRY, small focused components/services, pure functions where possible, avoid code smells and tight coupling; favor composition over inheritance.
 - Frontend: strict TypeScript, typed API clients, predictable state, hooks kept small, memoization only when measured; accessibility and keyboard support; monotone theme tokens for consistent styling.
 - Backend: pydantic models for request/response contracts, service layer isolating FastAPI endpoints from domain logic, ORM models scoped to modules; input validation, explicit error handling with structured errors; idempotent operations where applicable.
-- Cross-cutting: centralized logging with correlation IDs, configuration via env with sane defaults, secrets not committed; pagination for lists; consistent response envelopes.
+- Cross-cutting: centralized logging with correlation IDs, configuration via env with sane defaults, secrets not committed; pagination for lists; consistent response envelopes; JWT expiry default at 30 minutes.
 - Testing: unit tests for domain logic and utility calculations; integration tests for API endpoints and DB interactions; contract tests for critical DTOs; frontend component/unit tests plus a few E2E happy paths; use fixtures/builders to avoid brittle tests; enforce lint/format/pre-commit checks.
 - Production readiness: graceful shutdown, health/readiness endpoints, limited retries/backoff for outbound calls, metrics where useful, and monitoring-friendly logs.
 
@@ -70,20 +70,21 @@
 ## Latest Findings
 - Observables/events: API now includes update/delete and event CRUD; uses ORM `meta` column to avoid SQLAlchemy `metadata` collision.
 - Utility: GET vs recompute separated; recompute persists derived values and status, GET is pure; global metrics derive from fresh calculations but still rely on runtime recompute.
-- Auth/config: Hashing uses PBKDF2 (avoids bcrypt limits); `SECRET_KEY` default still `change-me`; no token revocation/refresh.
+- Auth/config: Hashing uses PBKDF2 (avoids bcrypt limits); app now enforces strong non-default `SECRET_KEY` (32+ chars) unless `TESTING=1`; default JWT expiry tightened to 30 minutes; no token revocation/refresh yet.
 - Frontend: Utility/Algorithm pages now call live API endpoints; Observables page still lacks create/edit flows.
 - Quality: Tests not yet run locally (pytest not available). Backend install now pins setuptools discovery to `app`. Alembic env needed sys.path fix to import `app.*`.
 
 ## Next Steps
 - Stand up local envs and run tests: create backend venv, `pip install .[dev]` (setuptools discovery pinned to `app`), run `alembic upgrade head` (sys.path fixed in env.py), run `pytest`; run frontend `npm test` and `npm run lint`.
 - Harden utility flow: ensure recompute is invoked on event mutations (in place), consider caching/storing snapshots before global metrics, and document the behavior.
-- Harden auth/config: require real `SECRET_KEY` via env, consider stricter token expiry/roles, keep PBKDF2 hashing.
+- Harden auth/config: add token revocation/refresh or server-side logout story; consider role expansion; keep enforced `SECRET_KEY` and 30m expiry defaults.
 - Frontend integration: add create/edit flows for observables/events with error handling; keep Utility/Algorithm wired to API.
 - Data/migrations: keep Alembic as source of truth (`alembic upgrade head`), add seed/demo data for UI/manual testing, document migration steps in README.
 - CORS: enabled for `http://localhost:5173` in backend app to allow frontend dev origin.
 
 ## Completed Work
 - Backend/frontend scaffolding with monotone theme, routing shells, placeholder endpoints, and initial tests.
+- Auth/config hardened: enforced strong `SECRET_KEY` (except testing), default JWT expiry 30 minutes, env vars documented.
 
 ## Open Questions & Risks
 - How to prevent stale utility metrics (triggers vs scheduled recompute vs transactional updates)?
