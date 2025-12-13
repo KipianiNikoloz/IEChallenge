@@ -558,12 +558,10 @@ export function ObservablesPage() {
 
                 <div style={{ display: "grid", gap: "0.5rem" }}>
                   <div style={{ fontWeight: 600 }}>Events</div>
-                  {obs.events.length === 0 && (
-                    <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>No events yet.</div>
-                  )}
+                  <EventChain events={obs.events} />
                   {obs.events.length > 0 && (
                     <div style={{ display: "grid", gap: "0.35rem" }}>
-                      {obs.events.map((event, idx) => (
+                      {obs.events.map((event) => (
                         <div
                           key={event.id}
                           style={{
@@ -588,10 +586,6 @@ export function ObservablesPage() {
                                 {event.description}
                               </div>
                             )}
-                            <div style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
-                              {idx > 0 && <div style={connectorStyle} />}
-                              <div style={nodeStyle(event)} title={event.label} />
-                            </div>
                           </div>
                           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
                             <button
@@ -779,29 +773,88 @@ const inputStyle: React.CSSProperties = {
   borderRadius: "6px",
 };
 
-const connectorStyle: React.CSSProperties = {
-  height: 2,
-  width: 32,
-  background: "var(--border)",
-};
+function EventChain({ events }: { events: ObservableDetail["events"] }) {
+  const width = 1000;
+  const height = 140;
+  const padding = 40;
+  const count = Math.max(events.length, 1);
+  const step = count > 1 ? (width - padding * 2) / (count - 1) : 0;
+  const baseY = height / 2;
+  const amplitude = 26;
 
-const nodeStyle = (event: { status: EventStatus; weight: number }): React.CSSProperties => {
-  const size = 16 + event.weight * 12;
-  const base: React.CSSProperties = {
-    width: size,
-    height: size,
-    borderRadius: "50%",
-    border: "2px solid var(--border)",
-    background: "transparent",
+  const pointColor = (event: ObservableDetail["events"][number]) => {
+    const isRisk = event.status === "FAILED" || event.type === "OPTIMIZATION";
+    const isPlanned = event.status === "PLANNED";
+    const stroke = isRisk ? "var(--accent)" : isPlanned ? "var(--muted)" : "var(--text)";
+    const fill =
+      isRisk || event.status === "COMPLETED" ? (isRisk ? "var(--accent)" : "var(--text)") : "transparent";
+    return { stroke, fill, isRisk, isPlanned };
   };
-  if (event.status === "COMPLETED") {
-    return { ...base, background: "var(--text)", borderColor: "var(--text)" };
-  }
-  if (event.status === "PLANNED") {
-    return { ...base, borderStyle: "dashed", borderColor: "var(--muted)" };
-  }
-  if (event.status === "FAILED") {
-    return { ...base, background: "var(--accent)", borderColor: "var(--accent)" };
-  }
-  return base;
-};
+
+  const points = events.map((event, idx) => {
+    const x = padding + idx * step;
+    const y = baseY + Math.sin(idx) * amplitude;
+    const radius = 8 + Math.min(Math.max(event.weight, 0.2), 2.5) * 6;
+    const { stroke, fill, isRisk, isPlanned } = pointColor(event);
+    return { x, y, radius, stroke, fill, isRisk, isPlanned, event };
+  });
+
+  return (
+    <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: "0.75rem", background: "var(--bg)" }}>
+      {events.length === 0 ? (
+        <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>No events yet.</div>
+      ) : (
+        <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Event chain" style={{ width: "100%" }}>
+          <rect x={0} y={0} width={width} height={height} fill="transparent" />
+          {points.map((point, idx) => {
+            const next = points[idx + 1];
+            if (!next) return null;
+            const stroke = point.isRisk || next.isRisk ? "var(--accent)" : "var(--text)";
+            const dash = point.isPlanned || next.isPlanned ? "6 6" : undefined;
+            return (
+              <line
+                key={`line-${idx}`}
+                x1={point.x}
+                y1={point.y}
+                x2={next.x}
+                y2={next.y}
+                stroke={stroke}
+                strokeWidth={2}
+                strokeDasharray={dash}
+                opacity={0.9}
+              />
+            );
+          })}
+          {points.map((point, idx) => (
+            <g key={`node-${point.event.id}-${idx}`}>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r={point.radius}
+                fill={point.fill}
+                stroke={point.stroke}
+                strokeWidth={2}
+                opacity={0.95}
+              >
+                <title>
+                  {point.event.label} · {point.event.type} · {point.event.status}
+                </title>
+              </circle>
+              {point.isPlanned && (
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={Math.max(point.radius - 6, 4)}
+                  fill="transparent"
+                  stroke={point.stroke}
+                  strokeWidth={2}
+                  strokeDasharray="3 3"
+                />
+              )}
+            </g>
+          ))}
+        </svg>
+      )}
+    </div>
+  );
+}
