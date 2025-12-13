@@ -10,7 +10,7 @@ class Observable(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
-    metadata = Column(JSON, nullable=False, default=dict)
+    meta = Column("metadata", JSON, nullable=False, default=dict)
     status = Column(Enum(ObservableStatus), nullable=False, default=ObservableStatus.STABLE)
     utility_x = Column(Float, nullable=False, default=0.0)
     utility_y = Column(Float, nullable=False, default=0.0)

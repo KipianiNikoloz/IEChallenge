@@ -27,7 +27,7 @@ async def get_utility_for_observable(
     _: UserRead = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> UtilitySnapshot:
-    snapshot = await get_snapshot_for_observable(session, observable_id)
+    snapshot = await get_snapshot_for_observable(session, observable_id, recompute=False)
     if not snapshot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observable not found")
     return snapshot
@@ -43,7 +43,7 @@ async def recompute_utility_for_observable(
     _: UserRead = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> UtilitySnapshot:
-    snapshot = await get_snapshot_for_observable(session, observable_id)
+    snapshot = await get_snapshot_for_observable(session, observable_id, recompute=True)
     if not snapshot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Observable not found")
     return snapshot

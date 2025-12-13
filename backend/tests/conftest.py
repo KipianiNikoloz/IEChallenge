@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import AsyncIterator
 
 import pytest
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -13,9 +13,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+if str(ROOT / "app") not in sys.path:
+    sys.path.insert(0, str(ROOT / "app"))
+
+# Ensure local package is used, not any globally installed "app"
+for mod in ["app", "app.main", "app.db", "app.db.models"]:
+    sys.modules.pop(mod, None)
 
 os.environ["TESTING"] = "1"
 
+from app.core.security import create_access_token  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.db.database import get_session  # noqa: E402
 from app.main import app  # noqa: E402
@@ -41,7 +48,12 @@ async def async_client() -> AsyncIterator[AsyncClient]:
     async with TestingSessionLocal() as session:
         await ensure_admin_user(session, username="admin", password="admin")
 
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    transport = ASGITransport(app=app)
+
+    token = create_access_token("admin")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    async with AsyncClient(transport=transport, base_url="http://test", headers=headers) as client:
         yield client
 
     app.dependency_overrides.clear()
