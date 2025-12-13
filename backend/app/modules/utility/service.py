@@ -1,5 +1,5 @@
 import math
-from typing import Optional
+from typing import Dict, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +10,7 @@ from app.modules.observables.schemas import EventStatus, EventType, ObservableSt
 from app.modules.utility.schemas import GlobalUtilityMetrics, UtilitySnapshot
 
 CUTOFF_DISTANCE = 1.0
+_snapshot_cache: Dict[int, UtilitySnapshot] = {}
 
 
 def _compute_utility_from_events(events: list[Event]) -> tuple[float, float]:
@@ -55,6 +56,14 @@ def _calculate_snapshot(observable: Observable) -> UtilitySnapshot:
     )
 
 
+def _cache_snapshot(snapshot: UtilitySnapshot) -> None:
+    _snapshot_cache[snapshot.observable_id] = snapshot
+
+
+def clear_snapshot_cache_for_observable(observable_id: int) -> None:
+    _snapshot_cache.pop(observable_id, None)
+
+
 async def _load_observable_with_events(
     session: AsyncSession, observable_id: int
 ) -> Optional[Observable]:
@@ -65,6 +74,10 @@ async def _load_observable_with_events(
 
 
 async def recompute_snapshot(session: AsyncSession, observable: Observable) -> UtilitySnapshot:
+    # Ensure events are loaded to avoid lazy-load I/O in async contexts.
+    observable_with_events = await _load_observable_with_events(session, observable.id)
+    observable = observable_with_events or observable
+
     snapshot = _calculate_snapshot(observable)
     observable.utility_x = snapshot.utility_x
     observable.utility_y = snapshot.utility_y
@@ -76,6 +89,7 @@ async def recompute_snapshot(session: AsyncSession, observable: Observable) -> U
     session.add(observable)
     await session.commit()
     await session.refresh(observable)
+    _cache_snapshot(snapshot)
     return snapshot
 
 
@@ -87,7 +101,12 @@ async def get_snapshot_for_observable(
         return None
     if recompute:
         return await recompute_snapshot(session, observable)
-    return _calculate_snapshot(observable)
+    cached = _snapshot_cache.get(observable_id)
+    if cached:
+        return cached
+    snapshot = _calculate_snapshot(observable)
+    _cache_snapshot(snapshot)
+    return snapshot
 
 
 async def compute_global_metrics(session: AsyncSession) -> GlobalUtilityMetrics:
@@ -101,7 +120,15 @@ async def compute_global_metrics(session: AsyncSession) -> GlobalUtilityMetrics:
             total_observables=0,
         )
 
-    snapshots = [_calculate_snapshot(obs) for obs in observables]
+    snapshots: list[UtilitySnapshot] = []
+    for obs in observables:
+        cached = _snapshot_cache.get(obs.id)
+        if cached:
+            snapshots.append(cached)
+        else:
+            snapshot = _calculate_snapshot(obs)
+            _cache_snapshot(snapshot)
+            snapshots.append(snapshot)
     distances = [snap.utility_distance for snap in snapshots]
     below_cutoff = [d for d in distances if d < CUTOFF_DISTANCE]
     average_distance = sum(distances) / len(distances)

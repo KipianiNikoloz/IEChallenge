@@ -14,7 +14,7 @@ from app.modules.observables.schemas import (
     ObservableRead,
     ObservableUpdate,
 )
-from app.modules.utility.service import recompute_snapshot
+from app.modules.utility.service import clear_snapshot_cache_for_observable, recompute_snapshot
 
 
 def _event_to_read(event: Event) -> EventRead:
@@ -114,6 +114,7 @@ async def delete_observable(session: AsyncSession, observable_id: int) -> bool:
         return False
     await session.delete(observable)
     await session.commit()
+    clear_snapshot_cache_for_observable(observable_id)
     return True
 
 
