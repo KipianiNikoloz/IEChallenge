@@ -74,6 +74,10 @@ async def _load_observable_with_events(
 
 
 async def recompute_snapshot(session: AsyncSession, observable: Observable) -> UtilitySnapshot:
+    # Ensure events are loaded to avoid lazy-load I/O in async contexts.
+    observable_with_events = await _load_observable_with_events(session, observable.id)
+    observable = observable_with_events or observable
+
     snapshot = _calculate_snapshot(observable)
     observable.utility_x = snapshot.utility_x
     observable.utility_y = snapshot.utility_y
