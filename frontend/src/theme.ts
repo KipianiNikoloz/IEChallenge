@@ -6,6 +6,9 @@ export const theme = {
   border: "var(--border)",
   accent: "var(--accent)",
   success: "var(--success)",
+  // Soft elevation + radius tokens for consistent surfaces.
+  radius: "var(--radius)",
+  shadow: "var(--shadow)",
 };
 
 export function applyTheme() {

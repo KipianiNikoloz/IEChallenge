@@ -35,7 +35,10 @@ export function LayoutShell() {
                 to={link.to}
                 style={({ isActive }) => ({
                   color: isActive ? "var(--accent)" : "var(--text)",
-                  fontWeight: isActive ? 600 : 400,
+                  fontWeight: isActive ? 600 : 500,
+                  padding: "0.35rem 0.6rem",
+                  borderRadius: "10px",
+                  background: isActive ? "#e9edf3" : "transparent",
                 })}
               >
                 {link.label}
@@ -62,6 +65,7 @@ const headerStyle: React.CSSProperties = {
   padding: "1rem 1.5rem",
   borderBottom: "1px solid var(--border)",
   background: "var(--bg-raised)",
+  boxShadow: "0 3px 10px rgba(17, 19, 25, 0.04)",
 };
 
 const brandStyle: React.CSSProperties = {
