@@ -69,14 +69,15 @@
 
 ## Latest Findings
 - Observables/events: API now includes update/delete and event CRUD; uses ORM `meta` column to avoid SQLAlchemy `metadata` collision.
-- Utility: GET vs recompute separated; recompute persists derived values and status, GET is pure; global metrics derive from fresh calculations but still rely on runtime recompute.
+- Utility: recompute persists derived values and status on event mutations; snapshots cached in-memory per observable for faster reads; global metrics aggregate cached/per-request snapshots.
 - Auth/config: Hashing uses PBKDF2 (avoids bcrypt limits); app now enforces strong non-default `SECRET_KEY` (32+ chars) unless `TESTING=1`; default JWT expiry tightened to 30 minutes; no token revocation/refresh yet.
 - Frontend: Utility/Algorithm pages now call live API endpoints; Observables page still lacks create/edit flows.
 - Quality: Tests not yet run locally (pytest not available). Backend install now pins setuptools discovery to `app`. Alembic env needed sys.path fix to import `app.*`.
+- Demo data: `python -m app.seeds.demo_seed` seeds two observables with events (idempotent by name) for UI testing.
 
 ## Next Steps
 - Stand up local envs and run tests: create backend venv, `pip install .[dev]` (setuptools discovery pinned to `app`), run `alembic upgrade head` (sys.path fixed in env.py), run `pytest`; run frontend `npm test` and `npm run lint`.
-- Harden utility flow: ensure recompute is invoked on event mutations (in place), consider caching/storing snapshots before global metrics, and document the behavior.
+- Harden utility flow: consider persisting snapshot history and cache invalidation across processes; ensure recompute hooks stay in sync as features grow.
 - Harden auth/config: add token revocation/refresh or server-side logout story; consider role expansion; keep enforced `SECRET_KEY` and 30m expiry defaults.
 - Frontend integration: add create/edit flows for observables/events with error handling; keep Utility/Algorithm wired to API.
 - Data/migrations: keep Alembic as source of truth (`alembic upgrade head`), add seed/demo data for UI/manual testing, document migration steps in README.
@@ -85,6 +86,7 @@
 ## Completed Work
 - Backend/frontend scaffolding with monotone theme, routing shells, placeholder endpoints, and initial tests.
 - Auth/config hardened: enforced strong `SECRET_KEY` (except testing), default JWT expiry 30 minutes, env vars documented.
+- Utility snapshots now cached per observable; event mutations trigger recompute; demo seed script adds sample observables/events for UI tests.
 
 ## Open Questions & Risks
 - How to prevent stale utility metrics (triggers vs scheduled recompute vs transactional updates)?

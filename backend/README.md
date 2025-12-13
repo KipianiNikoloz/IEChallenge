@@ -31,5 +31,13 @@ FastAPI modular monolith skeleton for the Black Box Democracy dashboard.
 - `app/api/router.py`: aggregates module routers under `/api/v1`.
 - Default admin (dev): `admin` / `admin` (created on startup). Set a real `SECRET_KEY` and rotate credentials for non-dev.
 
+## Demo Data
+- Seed a couple of demo observables/events for UI testing: `python -m app.seeds.demo_seed` (run from `backend/` with venv + `.env` loaded; idempotent by name).
+
+## Utility & Caching
+- Event create/update/delete triggers a utility recompute and persists the derived values; snapshots are cached in-memory per observable for faster reads.
+- `GET /observables/{id}/utility` returns cached snapshots when available; recompute endpoints force refresh.
+- Global metrics aggregate from the cached/per-request snapshots; rotate the process if cache needs a full reset.
+
 ## Testing
 - Run tests: `pytest`.
