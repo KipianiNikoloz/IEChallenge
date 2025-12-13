@@ -62,13 +62,30 @@
 - Phasing: (1) Architecture & Data Model, (2) Backend Core, (3) Frontend Shell, (4) Feature Implementation, (5) Demo Data + Pseudo-Algorithm Content, (6) Polish + Testing.
 
 ## Current Sprint
-- Sprint: Sprint 1 – Foundations
+- Sprint: Sprint 1 - Foundations
 - Goals: (done) scaffold modular monolith structure for backend (FastAPI) and frontend (React TS), establish lint/format/test baselines, set monotone theme tokens and routing shells, provide health/auth stubs and data model placeholders; (next) implement real auth with JWT, add DB models with Alembic migrations for observables/events/utility, wire utility computation to persisted data, and connect frontend login + observables list to live API.
 - Scope: project skeleton, configuration, quality tooling, initial routes/endpoints stubs, theme tokens and layout shells, plus auth + persistence + utility wiring and frontend auth/data hookup.
 - Out of Scope: full optimization logic, advanced charts, production infra.
+
+## Latest Findings
+- Observables/events: API now includes update/delete and event CRUD; uses ORM `meta` column to avoid SQLAlchemy `metadata` collision.
+- Utility: GET vs recompute separated; recompute persists derived values and status, GET is pure; global metrics derive from fresh calculations but still rely on runtime recompute.
+- Auth/config: Hashing uses PBKDF2 (avoids bcrypt limits); `SECRET_KEY` default still `change-me`; no token revocation/refresh.
+- Frontend: Utility/Algorithm pages now call live API endpoints; Observables page still lacks create/edit flows.
+- Quality: Tests not yet run locally (pytest not available). Backend install now pins setuptools discovery to `app`. Alembic env needed sys.path fix to import `app.*`.
+
+## Next Steps
+- Stand up local envs and run tests: create backend venv, `pip install .[dev]` (setuptools discovery pinned to `app`), run `alembic upgrade head` (sys.path fixed in env.py), run `pytest`; run frontend `npm test` and `npm run lint`.
+- Harden utility flow: ensure recompute is invoked on event mutations (in place), consider caching/storing snapshots before global metrics, and document the behavior.
+- Harden auth/config: require real `SECRET_KEY` via env, consider stricter token expiry/roles, keep PBKDF2 hashing.
+- Frontend integration: add create/edit flows for observables/events with error handling; keep Utility/Algorithm wired to API.
+- Data/migrations: keep Alembic as source of truth (`alembic upgrade head`), add seed/demo data for UI/manual testing, document migration steps in README.
+- CORS: enabled for `http://localhost:5173` in backend app to allow frontend dev origin.
 
 ## Completed Work
 - Backend/frontend scaffolding with monotone theme, routing shells, placeholder endpoints, and initial tests.
 
 ## Open Questions & Risks
-- Not yet captured.
+- How to prevent stale utility metrics (triggers vs scheduled recompute vs transactional updates)?
+- Security posture depends on replacing default `SECRET_KEY`; no session revocation/refresh path yet.
+- Missing event CRUD blocks visualization fidelity and optimization flows end-to-end.

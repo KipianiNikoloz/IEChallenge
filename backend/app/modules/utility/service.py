@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +7,6 @@ from sqlalchemy.orm import selectinload
 
 from app.db.models import Event, Observable
 from app.modules.observables.schemas import EventStatus, EventType, ObservableStatus
-from app.modules.observables.service import get_observable
 from app.modules.utility.schemas import GlobalUtilityMetrics, UtilitySnapshot
 
 CUTOFF_DISTANCE = 1.0
@@ -33,46 +32,67 @@ def _compute_utility_from_events(events: list[Event]) -> tuple[float, float]:
     return utility_x, utility_y
 
 
-async def recompute_snapshot(session: AsyncSession, observable: Observable) -> UtilitySnapshot:
+def _calculate_snapshot(observable: Observable) -> UtilitySnapshot:
     utility_x, utility_y = _compute_utility_from_events(observable.events)
     utility_distance = math.sqrt(utility_x**2 + utility_y**2)
-    observable.utility_x = utility_x
-    observable.utility_y = utility_y
-    observable.utility_distance = utility_distance
-    observable.status = (
-        ObservableStatus.OPTIMIZED if utility_distance >= CUTOFF_DISTANCE else ObservableStatus.AT_RISK
+    events_present = len(observable.events) > 0
+    current_status = (
+        observable.status if isinstance(observable.status, ObservableStatus) else ObservableStatus.STABLE
     )
-    session.add(observable)
-    await session.commit()
-    await session.refresh(observable)
+    if utility_distance >= CUTOFF_DISTANCE:
+        status = ObservableStatus.OPTIMIZED
+    elif events_present:
+        status = ObservableStatus.AT_RISK
+    else:
+        status = current_status
+
     return UtilitySnapshot(
         observable_id=observable.id,
         utility_x=utility_x,
         utility_y=utility_y,
         utility_distance=utility_distance,
-        status=observable.status.value if isinstance(observable.status, ObservableStatus) else observable.status,
+        status=status.value if isinstance(status, ObservableStatus) else str(status),
     )
 
 
-async def get_snapshot_for_observable(
+async def _load_observable_with_events(
     session: AsyncSession, observable_id: int
-) -> Optional[UtilitySnapshot]:
-    detail = await get_observable(session, observable_id)
-    if not detail:
-        return None
-    # refetch ORM instance with events
+) -> Optional[Observable]:
     result = await session.execute(
         select(Observable).options(selectinload(Observable.events)).where(Observable.id == observable_id)
     )
-    observable = result.scalars().first()
+    return result.scalars().first()
+
+
+async def recompute_snapshot(session: AsyncSession, observable: Observable) -> UtilitySnapshot:
+    snapshot = _calculate_snapshot(observable)
+    observable.utility_x = snapshot.utility_x
+    observable.utility_y = snapshot.utility_y
+    observable.utility_distance = snapshot.utility_distance
+    try:
+        observable.status = ObservableStatus(snapshot.status)
+    except ValueError:
+        observable.status = ObservableStatus.AT_RISK
+    session.add(observable)
+    await session.commit()
+    await session.refresh(observable)
+    return snapshot
+
+
+async def get_snapshot_for_observable(
+    session: AsyncSession, observable_id: int, recompute: bool = False
+) -> Optional[UtilitySnapshot]:
+    observable = await _load_observable_with_events(session, observable_id)
     if not observable:
         return None
-    return await recompute_snapshot(session, observable)
+    if recompute:
+        return await recompute_snapshot(session, observable)
+    return _calculate_snapshot(observable)
 
 
 async def compute_global_metrics(session: AsyncSession) -> GlobalUtilityMetrics:
-    result = await session.execute(select(Observable))
-    observables = result.scalars().all()
+    result = await session.execute(select(Observable).options(selectinload(Observable.events)))
+    observables = result.scalars().unique().all()
     if not observables:
         return GlobalUtilityMetrics(
             average_distance=0.0,
@@ -81,7 +101,8 @@ async def compute_global_metrics(session: AsyncSession) -> GlobalUtilityMetrics:
             total_observables=0,
         )
 
-    distances = [obs.utility_distance for obs in observables]
+    snapshots = [_calculate_snapshot(obs) for obs in observables]
+    distances = [snap.utility_distance for snap in snapshots]
     below_cutoff = [d for d in distances if d < CUTOFF_DISTANCE]
     average_distance = sum(distances) / len(distances)
     percent_below_cutoff = len(below_cutoff) / len(distances)

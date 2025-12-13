@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { post } from "../../lib/apiClient";
@@ -61,14 +61,14 @@ export function LoginPage() {
   );
 }
 
-const labelStyle: React.CSSProperties = {
+const labelStyle: CSSProperties = {
   display: "grid",
   gap: "0.25rem",
   color: "var(--muted)",
   fontSize: "0.9rem",
 };
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
   background: "var(--bg)",
   border: "1px solid var(--border)",
   color: "var(--text)",

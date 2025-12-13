@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -36,6 +37,32 @@ class EventRead(BaseModel):
     timestamp: Optional[str] = None
 
 
+class EventBase(BaseModel):
+    label: str
+    type: EventType = EventType.PAST
+    status: EventStatus = EventStatus.PLANNED
+    description: Optional[str] = None
+    sequence_index: int = Field(ge=0, default=0)
+    is_cutoff: bool = False
+    weight: float = 1.0
+    timestamp: Optional[datetime] = None
+
+
+class EventCreate(EventBase):
+    pass
+
+
+class EventUpdate(BaseModel):
+    label: Optional[str] = None
+    type: Optional[EventType] = None
+    status: Optional[EventStatus] = None
+    description: Optional[str] = None
+    sequence_index: Optional[int] = Field(default=None, ge=0)
+    is_cutoff: Optional[bool] = None
+    weight: Optional[float] = None
+    timestamp: Optional[datetime] = None
+
+
 class ObservableBase(BaseModel):
     name: str
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -44,6 +71,12 @@ class ObservableBase(BaseModel):
 
 class ObservableCreate(ObservableBase):
     pass
+
+
+class ObservableUpdate(BaseModel):
+    name: Optional[str] = None
+    metadata: Optional[dict[str, Any]] = None
+    status: Optional[ObservableStatus] = None
 
 
 class ObservableRead(ObservableBase):

@@ -3,15 +3,20 @@ from __future__ import annotations
 import asyncio
 from logging.config import fileConfig
 from pathlib import Path
+import sys
 
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.core.config import settings
-from app.db.base import Base
-from app.db.models import *  # noqa: F401,F403
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from app.core.config import settings  # noqa: E402
+from app.db.base import Base  # noqa: E402
+from app.db.models import *  # noqa: F401,F403,E402
 
 config = context.config
 
