@@ -13,6 +13,12 @@ CUTOFF_DISTANCE = 1.0
 _snapshot_cache: Dict[int, UtilitySnapshot] = {}
 
 
+def _cutoff_y(x: float) -> float:
+    # Mirror frontend sigmoid: steeper and centered near origin with slight padding.
+    core = 1 / (1 + math.exp(-2.4 * x))
+    return 0.02 + 0.96 * core
+
+
 def _compute_utility_from_events(events: list[Event]) -> tuple[float, float]:
     utility_x = 0.0
     utility_y = 0.0
@@ -22,6 +28,7 @@ def _compute_utility_from_events(events: list[Event]) -> tuple[float, float]:
             utility_y += event.weight * (1.0 if event.type == EventType.PAST else 0.5)
         elif event.status == EventStatus.FAILED:
             utility_x -= event.weight
+            utility_y -= event.weight * 0.5
         elif event.status == EventStatus.PLANNED:
             utility_y += event.weight * (1.0 if event.type != EventType.PAST else 0.3)
         if event.type == EventType.OPTIMIZATION and event.status in {
@@ -37,15 +44,20 @@ def _calculate_snapshot(observable: Observable) -> UtilitySnapshot:
     utility_x, utility_y = _compute_utility_from_events(observable.events)
     utility_distance = math.sqrt(utility_x**2 + utility_y**2)
     events_present = len(observable.events) > 0
+    has_optimization = any(event.type == EventType.OPTIMIZATION for event in observable.events)
     current_status = (
         observable.status if isinstance(observable.status, ObservableStatus) else ObservableStatus.STABLE
     )
-    if utility_distance >= CUTOFF_DISTANCE:
-        status = ObservableStatus.OPTIMIZED
-    elif events_present:
+    if utility_x < 0 and utility_y < 0 and not has_optimization and events_present:
         status = ObservableStatus.AT_RISK
     else:
-        status = current_status
+        cutoff_y_value = _cutoff_y(utility_x)
+        if utility_y >= cutoff_y_value:
+            status = ObservableStatus.OPTIMIZED
+        elif events_present:
+            status = ObservableStatus.AT_RISK
+        else:
+            status = current_status
 
     return UtilitySnapshot(
         observable_id=observable.id,
@@ -101,9 +113,6 @@ async def get_snapshot_for_observable(
         return None
     if recompute:
         return await recompute_snapshot(session, observable)
-    cached = _snapshot_cache.get(observable_id)
-    if cached:
-        return cached
     snapshot = _calculate_snapshot(observable)
     _cache_snapshot(snapshot)
     return snapshot

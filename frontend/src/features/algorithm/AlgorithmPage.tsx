@@ -32,72 +32,46 @@ export function AlgorithmPage() {
   }, []);
 
   return (
-    <div className="card" style={{ position: "relative", overflow: "hidden", padding: "1.25rem" }}>
-      <style>
-        {`
-          .alg-noise { mix-blend-mode: multiply; }
-          .alg-scan { animation: alg-scan 4.8s ease-in-out infinite; opacity: 0.12; }
-          .alg-blink { animation: alg-blink 3.2s steps(2, end) infinite; }
-          .alg-drift { animation: alg-drift 9s ease-in-out infinite alternate; }
-          .alg-jitter { animation: alg-jitter 2.4s steps(4, end) infinite; }
-          @keyframes alg-scan { 0% { transform: translateY(-8%); } 50% { transform: translateY(8%); } 100% { transform: translateY(-8%); } }
-          @keyframes alg-blink { 0%, 49% { opacity: 0.65; } 50%, 100% { opacity: 0.18; } }
-          @keyframes alg-drift { 0% { transform: translateX(-2%); } 100% { transform: translateX(2%); } }
-          @keyframes alg-jitter { 0% { transform: translate(0, 0); } 50% { transform: translate(1px, -1px); } 100% { transform: translate(-1px, 1px); } }
-        `}
-      </style>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
-        <h2 style={{ margin: 0, fontWeight: 600, letterSpacing: "0.08em" }}>Algorithm</h2>
-        <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>∴{summary?.version ?? "0.x"}∵</div>
+    <div className="card" style={{ padding: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+        <h2 style={{ margin: 0, fontWeight: 600, letterSpacing: "-0.02em", fontSize: "1.5rem" }}>Algorithm</h2>
+        <div style={{ 
+          fontSize: "0.875rem", 
+          color: "var(--text-secondary)", 
+          fontFamily: "monospace", 
+          background: "var(--bg)", 
+          padding: "0.25rem 0.5rem", 
+          borderRadius: "4px", 
+          border: "1px solid var(--border)" 
+        }}>
+          v{summary?.version ?? "0.x"}
+        </div>
       </div>
 
       {loading && <div style={{ color: "var(--muted)" }}>Loading...</div>}
-      {error && <div style={{ color: "var(--accent)" }}>{error}</div>}
+      {error && <div style={{ color: "var(--error)" }}>{error}</div>}
 
       {!loading && !error && (
-        <div style={{ position: "relative", minHeight: 320 }}>
-          <div
-            aria-hidden
-            className="alg-noise alg-drift"
-            style={{
-              position: "absolute",
-              inset: "-8% -6%",
-              background:
-                "repeating-linear-gradient(90deg, rgba(0,0,0,0.08) 0, rgba(0,0,0,0.08) 3px, transparent 4px)",
-              pointerEvents: "none",
-            }}
-          />
-          <div
-            aria-hidden
-            className="alg-scan"
-            style={{
-              position: "absolute",
-              inset: "-10% -6%",
-              background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.05) 50%, transparent 100%)",
-              pointerEvents: "none",
-            }}
-          />
-
+        <div style={{ display: "grid", gap: "1.5rem" }}>
+          
           <div style={gridShell}>
-            <ChaoticBlock
+            <InfoBlock
               title="∴ Θ"
               content={[
                 "λΣΣ :: //{ΔΔ}",
                 `v=${summary?.status ?? "UNK"} :: ⊠⊠⊠`,
                 "ƒ(x)=Σ e^{-x} ░░░",
               ]}
-              variant="overlay"
             />
-            <ChaoticBlock
+            <InfoBlock
               title="ξξξξ"
               content={[
                 "[ ψ ≈ NULL ] ::" ,
                 "∑λ⟂⟂⟂   0xAF12   ▓▓▓▓",
                 "{r:r:r:r} :: ???",
               ]}
-              variant="tight"
             />
-            <ChaoticBlock
+            <InfoBlock
               title="∴objective"
               content={[
                 truncate(summary?.objective ?? "∅"),
@@ -106,29 +80,73 @@ export function AlgorithmPage() {
               ]}
               variant="wide"
             />
+            <InfoBlock
+              title="φ-stack"
+              content={[
+                "[0x00|0x0F|0xFF]",
+                "Σ(i=0→n) λ_i μ_i ▒▒▒",
+                "ƒ≈{∂/∂t ▷ ▷ ▷}",
+                "ψψψ ψψ ψψψ",
+              ]}
+            />
+            <InfoBlock
+              title="unk/pkt"
+              content={[
+                "⌊1101⌋ ⌈0011⌉ ⌊1010⌋",
+                "∵∴∵   { }   ∵∴∵",
+                "::= >>= <<= ::=",
+                "ΩΩΩΩΩΩΩΩΩΩΩΩΩ",
+              ]}
+            />
+          </div>
+
+          <div style={shardField}>
+            {["⊡ ⊠ ⊡", "∑∑∑ λλλ", "░░░░", "∂ψ/∂t ≠ 0", "NULL≠0x00", "ξξξξξ", "⧜⧜⧜"].map((frag, idx) => (
+              <div
+                key={idx}
+                style={{
+                  fontFamily: "monospace",
+                  fontSize: "0.75rem",
+                  letterSpacing: "0.05em",
+                  padding: "0.25rem 0.5rem",
+                  border: "1px solid var(--border)",
+                  borderRadius: "4px",
+                  background: "var(--bg)",
+                  color: "var(--text-secondary)",
+                  textAlign: "center"
+                }}
+              >
+                {frag}
+              </div>
+            ))}
+          </div>
+
+          <div style={graphShell}>
+            <NetworkGraph />
           </div>
 
           <div style={logField}>
-            {logs.length === 0 && <div style={{ color: "var(--muted)" }}>∴ no emissions</div>}
+            {logs.length === 0 && <div style={{ color: "var(--muted)", padding: "1rem", textAlign: "center" }}>No logs available</div>}
             {logs.map((log, idx) => (
               <div
                 key={log.id}
-                className={idx % 3 === 0 ? "alg-blink" : ""}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "1fr auto",
                   alignItems: "center",
-                  padding: "0.35rem 0.4rem",
-                  borderBottom: "1px solid rgba(0,0,0,0.08)",
-                  fontFamily: idx % 2 === 0 ? "'SFMono-Regular', Consolas, monospace" : "Inter, sans-serif",
-                  fontSize: idx % 2 === 0 ? "0.85rem" : "0.9rem",
-                  letterSpacing: idx % 2 === 0 ? "0.12em" : "-0.01em",
-                  lineHeight: 1.25,
-                  background: idx % 4 === 0 ? "rgba(0,0,0,0.04)" : "transparent",
+                  padding: "0.5rem 0.75rem",
+                  borderBottom: "1px solid var(--border)",
+                  fontFamily: "monospace",
+                  fontSize: "0.8rem",
+                  background: idx % 2 === 0 ? "var(--bg)" : "transparent",
+                  color: "var(--text-secondary)"
                 }}
               >
-                <span>
-                  {mask(log.message)} ⧝ {log.level} :: {scramble(log.timestamp)}
+                <span style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                  <span style={{ color: "var(--accent)", fontWeight: 600 }}>[{log.level}]</span>
+                  <span>
+                    {mask(log.message)} ⧝ {scramble(log.timestamp)} ⧝ {ghostBits(idx)}
+                  </span>
                 </span>
                 <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>∻∻∻</span>
               </div>
@@ -140,57 +158,51 @@ export function AlgorithmPage() {
   );
 }
 
-function ChaoticBlock({
+function InfoBlock({
   title,
   content,
   variant,
 }: {
   title: string;
   content: string[];
-  variant?: "overlay" | "tight" | "wide";
+  variant?: "wide";
 }) {
   const base: CSSProperties = {
-    border: "1px solid rgba(0,0,0,0.2)",
-    padding: "0.65rem",
-    background: variant === "overlay" ? "rgba(0,0,0,0.05)" : "var(--bg-raised)",
-    borderRadius: 8,
+    border: "1px solid var(--border)",
+    padding: "1rem",
+    background: "var(--bg-raised)",
+    borderRadius: "var(--radius-sm)",
     position: "relative",
     overflow: "hidden",
     minHeight: 120,
+    boxShadow: "var(--shadow-sm)",
   };
-  if (variant === "overlay") base.mixBlendMode = "multiply";
   if (variant === "wide") base.gridColumn = "span 2";
 
   return (
     <div style={base}>
       <div
         style={{
-          fontFamily: "'SFMono-Regular', Consolas, monospace",
-          fontSize: "0.8rem",
-          letterSpacing: "0.2em",
-          marginBottom: "0.35rem",
+          fontFamily: "Inter, sans-serif",
+          fontSize: "0.75rem",
+          fontWeight: 600,
+          letterSpacing: "0.05em",
+          marginBottom: "0.75rem",
           textTransform: "uppercase",
+          color: "var(--muted)"
         }}
       >
         {title}
       </div>
-      <div style={{ position: "absolute", inset: 0, opacity: 0.16, pointerEvents: "none" }}>
-        <div className="alg-jitter" style={{ position: "absolute", top: "12%", left: "6%" }}>
-          ▓▓▓▓▓
-        </div>
-        <div className="alg-blink" style={{ position: "absolute", bottom: "8%", right: "12%", fontSize: "0.7rem" }}>
-          ⧜⧜⧜
-        </div>
-      </div>
-      <div style={{ display: "grid", gap: "0.25rem" }}>
+      <div style={{ display: "grid", gap: "0.35rem" }}>
         {content.map((line, idx) => (
           <div
             key={idx}
             style={{
-              fontFamily: idx % 2 === 0 ? "'SFMono-Regular', Consolas, monospace" : "Inter, sans-serif",
-              fontSize: idx % 2 === 0 ? "0.78rem" : "0.9rem",
-              letterSpacing: idx % 2 === 0 ? "0.14em" : "-0.04em",
-              whiteSpace: "pre",
+              fontFamily: "monospace",
+              fontSize: "0.85rem",
+              color: "var(--text)",
+              whiteSpace: "pre-wrap",
             }}
           >
             {line}
@@ -203,18 +215,33 @@ function ChaoticBlock({
 
 const gridShell: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: "0.75rem",
-  marginBottom: "1rem",
+  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+  gap: "1rem",
 };
 
 const logField: CSSProperties = {
-  border: "1px solid rgba(0,0,0,0.18)",
-  borderRadius: 8,
-  padding: "0.35rem",
-  maxHeight: 280,
-  overflow: "hidden",
-  background: "linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.02))",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius)",
+  maxHeight: 300,
+  overflowY: "auto",
+  background: "var(--bg-raised)",
+  boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.02)"
+};
+
+const shardField: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: "0.5rem",
+  justifyContent: "center",
+  opacity: 0.8
+};
+
+const graphShell: CSSProperties = {
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius)",
+  padding: "1rem",
+  background: "var(--bg)",
+  overflow: "hidden"
 };
 
 function mask(value: string): string {
@@ -235,4 +262,73 @@ function scramble(input: string): string {
 function truncate(value: string): string {
   if (value.length <= 26) return value;
   return value.slice(0, 18) + "…" + value.slice(-5);
+}
+
+function ghostBits(idx: number): string {
+  const ghost = ["0b1011", "▒▒▒", "∧∨∧", "⊗⊙⊗", "∞", "φ"];
+  return ghost[idx % ghost.length] ?? "▒";
+}
+
+function NetworkGraph() {
+  const nodes = Array.from({ length: 18 }, (_, i) => ({
+    id: i,
+    x: 20 + (i * 37) % 260 + (i % 3) * 8,
+    y: 20 + (i * 53) % 140 + ((i % 4) - 1) * 6,
+    r: 4 + (i % 5),
+  }));
+  const edges = [
+    [0, 1],
+    [1, 3],
+    [2, 5],
+    [3, 6],
+    [4, 7],
+    [5, 8],
+    [6, 9],
+    [7, 10],
+    [8, 11],
+    [9, 12],
+    [10, 13],
+    [11, 14],
+    [12, 15],
+    [13, 16],
+    [14, 17],
+    [2, 9],
+    [5, 13],
+    [0, 8],
+    [4, 12],
+  ];
+
+  return (
+    <svg viewBox="0 0 320 180" style={{ width: "100%", display: "block", overflow: "visible" }}>
+      <rect x={0} y={0} width={320} height={180} fill="transparent" />
+      {edges.map(([a, b], idx) => {
+        const from = nodes[a];
+        const to = nodes[b];
+        return (
+          <g key={`e-${idx}`} opacity={0.6}>
+            <line
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+              stroke="var(--border-hover)"
+              strokeWidth={1}
+            />
+          </g>
+        );
+      })}
+      {nodes.map((node, idx) => (
+        <g key={`n-${node.id}`}>
+          <circle
+            cx={node.x}
+            cy={node.y}
+            r={node.r}
+            fill="var(--bg-raised)"
+            stroke="var(--accent)"
+            strokeWidth={1.5}
+          />
+        </g>
+      ))}
+    </svg>
+  );
 }

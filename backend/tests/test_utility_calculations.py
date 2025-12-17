@@ -16,7 +16,7 @@ async def test_compute_utility_weights_completed_vs_failed() -> None:
     ]
     ux, uy = _compute_utility_from_events(events)
     assert ux == 1  # 2 - 1
-    assert uy == pytest.approx(2.0)  # completed past contributes weight * 1.0
+    assert uy == pytest.approx(1.5)  # completed past contributes 2, failed subtracts 0.5
 
 
 def test_snapshot_sets_status_by_distance() -> None:

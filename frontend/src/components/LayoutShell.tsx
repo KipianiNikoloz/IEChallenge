@@ -26,19 +26,21 @@ export function LayoutShell() {
   return (
     <div className="app-shell">
       <header style={headerStyle}>
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          <div style={brandStyle}>AGI Dashboard</div>
-          <nav style={{ display: "flex", gap: "0.75rem" }}>
+        <div style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
+          <div style={brandStyle}>BlackBox</div>
+          <nav style={{ display: "flex", gap: "0.5rem" }}>
             {links.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 style={({ isActive }) => ({
-                  color: isActive ? "var(--accent)" : "var(--text)",
+                  color: isActive ? "var(--text)" : "var(--text-secondary)",
                   fontWeight: isActive ? 600 : 500,
-                  padding: "0.35rem 0.6rem",
-                  borderRadius: "10px",
-                  background: isActive ? "#e9edf3" : "transparent",
+                  padding: "0.5rem 0.75rem",
+                  borderRadius: "var(--radius-sm)",
+                  background: isActive ? "var(--accent-light)" : "transparent",
+                  transition: "all 0.2s ease",
+                  fontSize: "0.875rem",
                 })}
               >
                 {link.label}
@@ -47,8 +49,8 @@ export function LayoutShell() {
           </nav>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Admin</div>
-          <button onClick={handleLogout}>Logout</button>
+          <div style={{ color: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Admin</div>
+          <button onClick={handleLogout} style={{ height: "32px", fontSize: "0.8rem" }}>Logout</button>
         </div>
       </header>
       <main className="content">
@@ -62,13 +64,20 @@ const headerStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "1rem 1.5rem",
+  padding: "0.75rem 2rem",
   borderBottom: "1px solid var(--border)",
   background: "var(--bg-raised)",
-  boxShadow: "0 3px 10px rgba(17, 19, 25, 0.04)",
+  boxShadow: "var(--shadow-sm)",
+  position: "sticky",
+  top: 0,
+  zIndex: 10,
+  backdropFilter: "blur(8px)",
+  backgroundColor: "rgba(255, 255, 255, 0.9)",
 };
 
 const brandStyle: React.CSSProperties = {
   fontWeight: 700,
-  letterSpacing: "0.04em",
+  letterSpacing: "-0.03em",
+  fontSize: "1.125rem",
+  color: "var(--text)",
 };

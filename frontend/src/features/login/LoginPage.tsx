@@ -29,9 +29,9 @@ export function LoginPage() {
   };
 
   return (
-    <div className="card" style={{ maxWidth: 420, margin: "4rem auto" }}>
-      <h2 style={{ marginTop: 0 }}>Admin Login</h2>
-      <form onSubmit={handleSubmit} style={{ display: "grid", gap: "0.75rem" }}>
+    <div className="card" style={{ maxWidth: 400, margin: "6rem auto", padding: "2rem" }}>
+      <h2 style={{ marginTop: 0, marginBottom: "1.5rem", textAlign: "center", fontSize: "1.5rem" }}>Admin Login</h2>
+      <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1.25rem" }}>
         <label style={labelStyle}>
           <span>Username</span>
           <input
@@ -40,6 +40,7 @@ export function LoginPage() {
             onChange={(e) => setUsername(e.target.value)}
             style={inputStyle}
             required
+            placeholder="Enter username"
           />
         </label>
         <label style={labelStyle}>
@@ -50,10 +51,11 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             style={inputStyle}
             required
+            placeholder="Enter password"
           />
         </label>
-        {error && <div style={{ color: "var(--accent)", fontSize: "0.9rem" }}>{error}</div>}
-        <button type="submit" disabled={loading}>
+        {error && <div style={{ color: "var(--error)", fontSize: "0.875rem", background: "#fef2f2", padding: "0.5rem", borderRadius: "var(--radius-sm)", textAlign: "center" }}>{error}</div>}
+        <button type="submit" disabled={loading} style={{ marginTop: "0.5rem", height: "40px", background: "var(--text)", color: "white", borderColor: "var(--text)" }}>
           {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
@@ -63,15 +65,13 @@ export function LoginPage() {
 
 const labelStyle: CSSProperties = {
   display: "grid",
-  gap: "0.25rem",
-  color: "var(--muted)",
-  fontSize: "0.9rem",
+  gap: "0.375rem",
+  color: "var(--text-secondary)",
+  fontSize: "0.875rem",
+  fontWeight: 500,
 };
 
 const inputStyle: CSSProperties = {
-  background: "var(--bg)",
-  border: "1px solid var(--border)",
-  color: "var(--text)",
-  padding: "0.55rem 0.65rem",
-  borderRadius: "6px",
+  // Styles handled by global CSS mostly, but overriding specific needs if any
+  width: "100%",
 };
