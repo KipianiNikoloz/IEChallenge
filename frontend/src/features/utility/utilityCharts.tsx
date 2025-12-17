@@ -7,9 +7,9 @@ function sigmoid(x: number): number {
 }
 
 function cutoffY(x: number): number {
-  // Slightly steeper sigmoid for a clearer S-curve; lift it so the cutoff sits higher.
-  const y = sigmoid(1.2 * x) + 0.15;
-  return Math.min(1, y);
+  // Steeper, centered sigmoid with minimal padding to mirror the target S-curve.
+  const core = sigmoid(2.4 * x);
+  return 0.02 + 0.96 * core;
 }
 
 type ScatterProps = {
@@ -43,8 +43,8 @@ export function UtilityScatter({ points, width = 360, height = 220 }: ScatterPro
   }
 
   return (
-    <svg width={width} height={height} role="img" aria-label="Utility scatter plot">
-      <rect x={0} y={0} width={width} height={height} fill="var(--bg)" rx={10} />
+    <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Utility scatter plot" style={{ overflow: "visible" }}>
+      {/* Removed background rect to be transparent */}
       <line
         x1={padding}
         y1={scaleY(0)}
@@ -63,18 +63,21 @@ export function UtilityScatter({ points, width = 360, height = 220 }: ScatterPro
       />
       <polyline
         fill="none"
-        stroke="var(--muted)"
-        strokeWidth={1.5}
+        stroke="var(--text-secondary)"
+        strokeWidth={2}
         points={curvePoints.join(" ")}
+        opacity={0.5}
       />
       {points.map((p) => (
         <circle
           key={p.id}
           cx={scaleX(p.x)}
           cy={scaleY(p.y)}
-          r={6}
-          fill={p.belowCutoff ? "var(--accent)" : "var(--text)"}
-          opacity={0.9}
+          r={5}
+          fill={p.belowCutoff ? "var(--error)" : "var(--accent)"}
+          stroke="var(--bg-raised)"
+          strokeWidth={1.5}
+          style={{ transition: "all 0.3s ease" }}
         />
       ))}
     </svg>
@@ -95,8 +98,8 @@ export function UtilityHistogram({ bins, width = 360, height = 220 }: HistogramP
   const barWidth = (width - padding * 2) / bins.length;
 
   return (
-    <svg width={width} height={height} role="img" aria-label="Utility histogram">
-      <rect x={0} y={0} width={width} height={height} fill="var(--bg)" rx={10} />
+    <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Utility histogram" style={{ overflow: "visible" }}>
+      {/* Removed background rect */}
       {bins.map((bin, idx) => {
         const barHeight = ((height - padding * 2) * bin.count) / maxCount;
         const x = padding + idx * barWidth;
@@ -106,19 +109,21 @@ export function UtilityHistogram({ bins, width = 360, height = 220 }: HistogramP
           <g key={bin.label}>
             <rect
               x={x + 4}
-              width={barWidth - 8}
+              width={Math.max(barWidth - 8, 2)}
               y={y}
               height={barHeight}
-              fill={isRisk ? "var(--accent)" : "var(--text)"}
-              opacity={0.85}
+              fill={isRisk ? "var(--error)" : "var(--accent)"}
+              opacity={0.8}
               rx={4}
+              style={{ transition: "all 0.3s ease" }}
             />
             <text
               x={x + barWidth / 2}
-              y={height - padding + 14}
+              y={height - padding + 16}
               textAnchor="middle"
-              fontSize="10"
-              fill="var(--muted)"
+              fontSize="11"
+              fill="var(--text-secondary)"
+              fontWeight={500}
             >
               {bin.label}
             </text>

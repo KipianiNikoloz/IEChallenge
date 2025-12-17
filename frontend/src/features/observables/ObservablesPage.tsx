@@ -433,7 +433,7 @@ export function ObservablesPage() {
       )}
 
       {!loading && observables.length > 0 && (
-        <div style={{ display: "grid", gap: "1rem" }}>
+        <div style={{ display: "grid", gap: "1.5rem" }}>
           {observables.map((obs) => {
             const editForm = editForms[obs.id];
             const isEditing = Boolean(editForm);
@@ -443,25 +443,38 @@ export function ObservablesPage() {
             return (
               <div
                 key={obs.id}
+                className="card"
                 style={{
-                  border: "1px solid var(--border)",
-                  borderRadius: 12,
-                  padding: "1rem",
-                  background: "var(--bg-raised)",
                   display: "grid",
-                  gap: "0.75rem",
+                  gap: "1.25rem",
+                  animation: "fadeIn 0.3s ease-out",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "flex-start" }}>
                   <div style={{ display: "grid", gap: "0.25rem" }}>
-                    <div style={{ fontWeight: 700, letterSpacing: "0.01em" }}>{obs.name}</div>
-                    <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-                      Status: {obs.status} · Distance: {obs.utility_distance.toFixed(2)}
+                    <div style={{ fontWeight: 700, letterSpacing: "-0.01em", fontSize: "1.125rem" }}>{obs.name}</div>
+                    <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+                      <span style={{ 
+                        display: "inline-flex", 
+                        alignItems: "center", 
+                        padding: "0.125rem 0.5rem", 
+                        borderRadius: "999px", 
+                        background: obs.status === "STABLE" ? "rgba(16, 185, 129, 0.1)" : "rgba(245, 158, 11, 0.1)", 
+                        color: obs.status === "STABLE" ? "var(--success)" : "var(--warning)",
+                        fontSize: "0.75rem",
+                        fontWeight: 600
+                      }}>
+                        {obs.status}
+                      </span>
+                      <span style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
+                        Distance: <span style={{ fontFamily: "monospace", fontWeight: 500 }}>{obs.utility_distance.toFixed(2)}</span>
+                      </span>
+                      <span style={{ color: "var(--muted)", fontSize: "0.875rem" }}>•</span>
+                      <span style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
+                        Utility: <span style={{ fontFamily: "monospace" }}>x:{obs.utility_x.toFixed(2)} y:{obs.utility_y.toFixed(2)}</span>
+                      </span>
                     </div>
-                    <div style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-                      Utility x: {obs.utility_x.toFixed(2)} | y: {obs.utility_y.toFixed(2)}
-                    </div>
-                    <div style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
+                    <div style={{ color: "var(--muted)", fontSize: "0.85rem", marginTop: "0.25rem" }}>
                       Metadata: {Object.keys(obs.metadata || {}).length === 0 ? "—" : JSON.stringify(obs.metadata)}
                     </div>
                   </div>
@@ -476,6 +489,7 @@ export function ObservablesPage() {
                         <button
                           onClick={() => void handleUpdateObservable(obs.id)}
                           disabled={busyObservableId === obs.id}
+                          style={{ background: "var(--text)", color: "white", borderColor: "var(--text)" }}
                         >
                           {busyObservableId === obs.id ? "Saving..." : "Save"}
                         </button>
@@ -496,6 +510,7 @@ export function ObservablesPage() {
                     <button
                       onClick={() => void handleDeleteObservable(obs.id)}
                       disabled={busyObservableId === obs.id}
+                      style={{ color: "var(--error)", borderColor: "var(--error)", background: "transparent" }}
                     >
                       Delete
                     </button>
@@ -503,8 +518,8 @@ export function ObservablesPage() {
                 </div>
 
                 {isEditing && editForm && (
-                  <div style={{ display: "grid", gap: "0.5rem" }}>
-                    <div style={{ display: "grid", gap: "0.5rem", gridTemplateColumns: "1fr 180px" }}>
+                  <div style={{ display: "grid", gap: "1rem", padding: "1rem", background: "var(--bg)", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>
+                    <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "1fr 180px" }}>
                       <label style={labelStyle}>
                         <span>Name</span>
                         <input
@@ -556,33 +571,74 @@ export function ObservablesPage() {
                   </div>
                 )}
 
-                <div style={{ display: "grid", gap: "0.5rem" }}>
-                  <div style={{ fontWeight: 600 }}>Events</div>
+                <div style={{ display: "grid", gap: "0.75rem" }}>
+                  <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>Events Timeline</div>
                   <EventChain events={obs.events} />
                   {obs.events.length > 0 && (
-                    <div style={{ display: "grid", gap: "0.35rem" }}>
+                    <div style={{ display: "grid", gap: "0.5rem", marginTop: "0.5rem" }}>
                       {obs.events.map((event) => (
                         <div
                           key={event.id}
                           style={{
                             display: "grid",
                             gridTemplateColumns: "1fr auto",
-                            gap: "0.5rem",
+                            gap: "0.75rem",
                             alignItems: "center",
-                            padding: "0.4rem 0.5rem",
+                            padding: "0.75rem",
                             border: "1px solid var(--border)",
-                            borderRadius: 8,
+                            borderRadius: "var(--radius-sm)",
+                            background: "var(--bg)",
+                            transition: "all 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = "var(--border-hover)";
+                            e.currentTarget.style.boxShadow = "var(--shadow-sm)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = "var(--border)";
+                            e.currentTarget.style.boxShadow = "none";
                           }}
                         >
-                          <div style={{ display: "grid", gap: "0.15rem" }}>
-                            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                              <span style={{ fontWeight: 600 }}>{event.label}</span>
-                              <span style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-                                {event.type} · {event.status} · w:{event.weight} · seq:{event.sequence_index}
+                          <div style={{ display: "grid", gap: "0.25rem" }}>
+                            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                              <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{event.label}</span>
+                              <span style={{ 
+                                fontSize: "0.75rem", 
+                                padding: "0.1rem 0.4rem", 
+                                borderRadius: "4px", 
+                                background: "var(--bg-raised)", 
+                                border: "1px solid var(--border)",
+                                color: "var(--text-secondary)"
+                              }}>
+                                {event.type}
+                              </span>
+                              <span style={{ 
+                                fontSize: "0.75rem", 
+                                color: event.status === "FAILED" ? "var(--error)" : "var(--text-secondary)",
+                                fontWeight: event.status === "FAILED" ? 600 : 400
+                              }}>
+                                {event.status}
+                              </span>
+                              {event.is_cutoff && (
+                                <span
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    padding: "0.1rem 0.5rem",
+                                    borderRadius: "999px",
+                                    border: "1px solid var(--accent)",
+                                    color: "var(--accent)",
+                                    letterSpacing: "0.05em",
+                                  }}
+                                >
+                                  CUTOFF
+                                </span>
+                              )}
+                              <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>
+                                w:{event.weight} · seq:{event.sequence_index}
                               </span>
                             </div>
                             {event.description && (
-                              <div style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
+                              <div style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
                                 {event.description}
                               </div>
                             )}
@@ -591,12 +647,14 @@ export function ObservablesPage() {
                             <button
                               onClick={() => startEditEvent(obs.id, event)}
                               disabled={busyEventId === event.id}
+                              style={{ height: "28px", fontSize: "0.8rem", padding: "0 0.75rem" }}
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => void handleDeleteEvent(obs.id, event.id)}
                               disabled={busyEventId === event.id}
+                              style={{ height: "28px", fontSize: "0.8rem", padding: "0 0.75rem", color: "var(--error)", borderColor: "var(--border)" }}
                             >
                               Delete
                             </button>
@@ -663,8 +721,8 @@ function EventFormFields({
   onChange: (next: EventForm) => void;
 }) {
   return (
-    <div style={{ display: "grid", gap: "0.5rem" }}>
-      <div style={{ display: "grid", gap: "0.5rem", gridTemplateColumns: "1fr 1fr" }}>
+    <div style={{ display: "grid", gap: "1rem" }}>
+      <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "1fr 1fr" }}>
         <label style={labelStyle}>
           <span>Label</span>
           <input
@@ -672,6 +730,7 @@ function EventFormFields({
             value={form.label}
             onChange={(e) => onChange({ ...form, label: e.target.value })}
             style={inputStyle}
+            placeholder="Event name"
           />
         </label>
         <label style={labelStyle}>
@@ -689,7 +748,7 @@ function EventFormFields({
           </select>
         </label>
       </div>
-      <div style={{ display: "grid", gap: "0.5rem", gridTemplateColumns: "1fr 1fr 1fr" }}>
+      <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "1fr 1fr 1fr" }}>
         <label style={labelStyle}>
           <span>Status</span>
           <select
@@ -726,7 +785,7 @@ function EventFormFields({
           />
         </label>
       </div>
-      <div style={{ display: "grid", gap: "0.5rem", gridTemplateColumns: "1fr 1fr" }}>
+      <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "1fr 1fr" }}>
         <label style={labelStyle}>
           <span>Description (optional)</span>
           <input
@@ -742,14 +801,17 @@ function EventFormFields({
             ...labelStyle,
             display: "flex",
             alignItems: "center",
-            gap: "0.35rem",
+            gap: "0.5rem",
             flexDirection: "row",
+            height: "100%",
+            paddingTop: "1.5rem"
           }}
         >
           <input
             type="checkbox"
             checked={form.is_cutoff}
             onChange={(e) => onChange({ ...form, is_cutoff: e.target.checked })}
+            style={{ width: "auto", margin: 0 }}
           />
           <span>Cutoff marker</span>
         </label>
@@ -760,17 +822,14 @@ function EventFormFields({
 
 const labelStyle: React.CSSProperties = {
   display: "grid",
-  gap: "0.25rem",
-  color: "var(--muted)",
-  fontSize: "0.9rem",
+  gap: "0.375rem",
+  color: "var(--text-secondary)",
+  fontSize: "0.875rem",
+  fontWeight: 500,
 };
 
 const inputStyle: React.CSSProperties = {
-  background: "var(--bg)",
-  border: "1px solid var(--border)",
-  color: "var(--text)",
-  padding: "0.55rem 0.65rem",
-  borderRadius: "6px",
+  // Handled by global CSS
 };
 
 function EventChain({ events }: { events: ObservableDetail["events"] }) {
@@ -785,32 +844,39 @@ function EventChain({ events }: { events: ObservableDetail["events"] }) {
   const pointColor = (event: ObservableDetail["events"][number]) => {
     const isRisk = event.status === "FAILED" || event.type === "OPTIMIZATION";
     const isPlanned = event.status === "PLANNED";
-    const stroke = isRisk ? "var(--accent)" : isPlanned ? "var(--muted)" : "var(--text)";
+    const isCutoff = Boolean(event.is_cutoff);
+    const strokeBase = isRisk ? "var(--error)" : isPlanned ? "var(--muted)" : "var(--text)";
+    const stroke = isCutoff ? "var(--accent)" : strokeBase;
     const fill =
-      isRisk || event.status === "COMPLETED" ? (isRisk ? "var(--accent)" : "var(--text)") : "transparent";
-    return { stroke, fill, isRisk, isPlanned };
+      isRisk || event.status === "COMPLETED" ? (isRisk ? "var(--error)" : "var(--text)") : "var(--bg-raised)";
+    return { stroke, fill, isRisk, isPlanned, isCutoff };
   };
 
   const points = events.map((event, idx) => {
     const x = padding + idx * step;
     const y = baseY + Math.sin(idx) * amplitude;
     const radius = 8 + Math.min(Math.max(event.weight, 0.2), 2.5) * 6;
-    const { stroke, fill, isRisk, isPlanned } = pointColor(event);
-    return { x, y, radius, stroke, fill, isRisk, isPlanned, event };
+    const { stroke, fill, isRisk, isPlanned, isCutoff } = pointColor(event);
+    return { x, y, radius, stroke, fill, isRisk, isPlanned, isCutoff, event };
   });
 
   return (
-    <div style={{ border: "1px solid var(--border)", borderRadius: 12, padding: "0.75rem", background: "var(--bg)" }}>
+    <div style={{ border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "1rem", background: "var(--bg-raised)", boxShadow: "inset 0 2px 4px 0 rgba(0,0,0,0.02)" }}>
       {events.length === 0 ? (
-        <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>No events yet.</div>
+        <div style={{ color: "var(--muted)", fontSize: "0.875rem", textAlign: "center", padding: "2rem" }}>No events yet.</div>
       ) : (
-        <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Event chain" style={{ width: "100%" }}>
-          <rect x={0} y={0} width={width} height={height} fill="transparent" />
+        <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Event chain" style={{ width: "100%", overflow: "visible" }}>
+          {/* Removed rect background to be transparent */}
           {points.map((point, idx) => {
             const next = points[idx + 1];
             if (!next) return null;
-            const stroke = point.isRisk || next.isRisk ? "var(--accent)" : "var(--text)";
-            const dash = point.isPlanned || next.isPlanned ? "6 6" : undefined;
+            const stroke =
+              point.isRisk || next.isRisk
+                ? "var(--error)"
+                : point.isCutoff || next.isCutoff
+                  ? "var(--accent)"
+                  : "var(--border)";
+            const dash = point.isPlanned || next.isPlanned ? "4 4" : undefined;
             return (
               <line
                 key={`line-${idx}`}
@@ -821,25 +887,38 @@ function EventChain({ events }: { events: ObservableDetail["events"] }) {
                 stroke={stroke}
                 strokeWidth={2}
                 strokeDasharray={dash}
-                opacity={0.9}
+                opacity={0.8}
               />
             );
           })}
           {points.map((point, idx) => (
-            <g key={`node-${point.event.id}-${idx}`}>
+            <g key={`node-${point.event.id}-${idx}`} style={{ transition: "all 0.3s ease", cursor: "pointer" }}>
               <circle
                 cx={point.x}
                 cy={point.y}
                 r={point.radius}
                 fill={point.fill}
                 stroke={point.stroke}
-                strokeWidth={2}
-                opacity={0.95}
+                strokeWidth={2.5}
+                className="event-node"
               >
                 <title>
                   {point.event.label} · {point.event.type} · {point.event.status}
                 </title>
               </circle>
+              {point.isCutoff && (
+                <rect
+                  x={point.x - (point.radius + 5)}
+                  y={point.y - (point.radius + 5)}
+                  width={(point.radius + 5) * 2}
+                  height={(point.radius + 5) * 2}
+                  fill="none"
+                  stroke="var(--accent)"
+                  strokeWidth={1.4}
+                  transform={`rotate(45 ${point.x} ${point.y})`}
+                  opacity={0.9}
+                />
+              )}
               {point.isPlanned && (
                 <circle
                   cx={point.x}
@@ -848,7 +927,8 @@ function EventChain({ events }: { events: ObservableDetail["events"] }) {
                   fill="transparent"
                   stroke={point.stroke}
                   strokeWidth={2}
-                  strokeDasharray="3 3"
+                  strokeDasharray="2 2"
+                  opacity={0.6}
                 />
               )}
             </g>
