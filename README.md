@@ -1,6 +1,6 @@
 # AGI Dashboard (Black Box Democracy)
 
-Modular monolith scaffold: FastAPI backend + React TypeScript frontend with a monotone, objective aesthetic for observables, events, and utility visualizations.
+Modular monolith scaffold: FastAPI backend + React TypeScript frontend with a monotone, objective aesthetic for observables, events, and utility visualizations. 
 
 ## Structure
 - `backend/`: FastAPI app (modules for auth, observables/events, utility/optimization, algorithm) with SQLite ORM setup and stub endpoints.
